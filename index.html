@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Конвертиране на аудио файлове в MP3 директно в браузъра."
+    />
+    <meta name="theme-color" content="#10151c" />
+    <title>Аудио към MP3</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: #10151c;
+        color: #f2f5f8;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        --muted: #9aa6b4;
+        --line: #2b3541;
+        --panel: #181f28;
+        --accent: #81e0bf;
+        --accent-strong: #32ba8e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      @keyframes pulse {
+        from {
+          opacity: 0.45;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        padding: 52px 20px 36px;
+        background:
+          radial-gradient(ellipse at 50% 0%, #21443b66, transparent 43rem),
+          #10151c;
+      }
+
+      button,
+      select {
+        font: inherit;
+      }
+
+      button:focus-visible,
+      select:focus-visible,
+      .drop-zone:focus-within {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .shell {
+        width: min(100%, 780px);
+        margin: 0 auto;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 43px;
+        color: #dde5ec;
+        font-size: 14px;
+        font-weight: 650;
+        letter-spacing: 0.025em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid #81e0bf55;
+        border-radius: 11px;
+        background: #81e0bf15;
+        color: var(--accent);
+      }
+
+      .brand-mark svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      header {
+        margin-bottom: 25px;
+      }
+
+      .eyebrow {
+        margin: 0 0 11px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(32px, 6vw, 47px);
+        font-weight: 690;
+        letter-spacing: -0.055em;
+        line-height: 1.1;
+      }
+
+      .intro {
+        max-width: 540px;
+        margin: 13px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      .panel {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: color-mix(in srgb, var(--panel) 94%, transparent);
+        box-shadow: 0 22px 65px #00000025;
+      }
+
+      .drop-zone {
+        display: flex;
+        min-height: 188px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 18px;
+        padding: 24px;
+        border: 1px dashed #546475;
+        border-radius: 12px;
+        background: #ffffff03;
+        text-align: center;
+        transition:
+          border-color 150ms ease,
+          background 150ms ease;
+      }
+
+      .drop-zone.is-dragover {
+        border-color: var(--accent);
+        background: #81e0bf12;
+      }
+
+      .upload-icon {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        margin-bottom: 13px;
+        place-items: center;
+        border: 1px solid #ffffff12;
+        border-radius: 14px;
+        background: #ffffff08;
+        color: var(--accent);
+      }
+
+      .upload-icon svg {
+        width: 21px;
+        height: 21px;
+      }
+
+      .drop-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .drop-hint {
+        margin: 5px 0 14px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .button {
+        display: inline-flex;
+        min-height: 39px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 15px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #102119;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        transition:
+          background 150ms ease,
+          transform 150ms ease;
+      }
+
+      .button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background: #9aebd0;
+      }
+
+      .button:disabled {
+        cursor: not-allowed;
+        opacity: 0.53;
+      }
+
+      .button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .settings {
+        display: flex;
+        min-height: 69px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 19px;
+        border-top: 1px solid var(--line);
+      }
+
+      .setting-label {
+        display: block;
+        margin-bottom: 4px;
+        color: #e3e9ef;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .setting-description {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      select {
+        min-width: 108px;
+        min-height: 37px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #111820;
+        color: #f2f5f8;
+      }
+
+      .queue {
+        display: none;
+        padding: 0 18px 17px;
+      }
+
+      .queue.has-files {
+        display: block;
+      }
+
+      .queue-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 1px 10px;
+      }
+
+      .queue-title {
+        margin: 0;
+        color: #dce3e9;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .text-button {
+        padding: 5px 1px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 11px;
+      }
+
+      .text-button:hover:not(:disabled) {
+        color: #f2f5f8;
+      }
+
+      .text-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .file-list {
+        display: grid;
+        gap: 8px;
+        max-height: 280px;
+        overflow: auto;
+        padding: 1px 2px;
+      }
+
+      .file-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 56px;
+        padding: 9px 11px;
+        border: 1px solid #ffffff0d;
+        border-radius: 9px;
+        background: #ffffff04;
+      }
+
+      .file-name {
+        overflow: hidden;
+        color: #e1e7ed;
+        font-size: 12px;
+        font-weight: 550;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-meta {
+        overflow: hidden;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .file-status {
+        color: var(--muted);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .file-status[data-state="done"] {
+        color: var(--accent);
+      }
+
+      .file-status[data-state="error"] {
+        color: #ff9b9b;
+      }
+
+      .download-link {
+        padding: 6px 9px;
+        border: 1px solid #81e0bf55;
+        border-radius: 7px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .download-link:hover {
+        background: #81e0bf12;
+      }
+
+      .progress-area {
+        display: none;
+        margin: 0 20px 17px;
+      }
+
+      .progress-area.visible {
+        display: block;
+      }
+
+      .progress-caption {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .progress-track {
+        height: 5px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #ffffff12;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent-strong);
+        transition: width 140ms ease;
+      }
+
+      .convert-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 15px 19px 17px;
+        border-top: 1px solid var(--line);
+      }
+
+      .privacy-note {
+        display: flex;
+        max-width: 390px;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      .privacy-note svg {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 auto;
+        margin-top: 1px;
+        color: var(--accent);
+      }
+
+      .notice {
+        display: none;
+        margin-top: 12px;
+        padding: 11px 13px;
+        border: 1px solid #ff9b9b3d;
+        border-radius: 9px;
+        background: #ff77770b;
+        color: #ffc1c1;
+        font-size: 12px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .notice.visible {
+        display: block;
+      }
+
+      footer {
+        margin-top: 17px;
+        color: #8793a0;
+        font-size: 11px;
+        line-height: 1.7;
+        text-align: center;
+      }
+
+      footer a {
+        color: #aebcc8;
+        text-decoration-color: #aebcc855;
+        text-underline-offset: 3px;
+      }
+
+      footer a:hover {
+        color: var(--accent);
+      }
+
+      #file-input {
+        display: none;
+      }
+
+      @media (max-width: 560px) {
+        body {
+          padding: 29px 14px 24px;
+        }
+
+        .brand {
+          margin-bottom: 32px;
+        }
+
+        .drop-zone {
+          min-height: 175px;
+          margin: 12px;
+          padding: 18px;
+        }
+
+        .settings {
+          padding-inline: 14px;
+        }
+
+        .queue {
+          padding-inline: 12px;
+        }
+
+        .file-item {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 7px;
+        }
+
+        .file-actions {
+          justify-content: space-between;
+        }
+
+        .convert-row {
+          align-items: stretch;
+          flex-direction: column;
+          padding-inline: 14px;
+        }
+
+        .convert-row .button {
+          width: 100%;
+        }
+
+        .progress-area {
+          margin-inline: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 18V5l12-2v13M9 18c0 1.66-1.79 3-4 3s-4-1.34-4-3 1.79-3 4-3 4 1.34 4 3Zm12-2c0 1.66-1.79 3-4 3s-4-1.34-4-3 1.79-3 4-3 4 1.34 4 3ZM9 9l12-2"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.7"
+            />
+          </svg>
+        </span>
+        <span>Аудио към MP3</span>
+      </div>
+
+      <header>
+        <p class="eyebrow">Безплатно · Работи в браузъра</p>
+        <h1>Твоето аудио.<br />В MP3 формат.</h1>
+        <p class="intro">
+          Добави един или няколко аудио файла, избери качество и ги изтегли
+          конвертирани. Не се изисква инсталация.
+        </p>
+      </header>
+
+      <section class="panel" aria-label="Конвертор на аудио в MP3">
+        <div
+          id="drop-zone"
+          class="drop-zone"
+          role="region"
+          aria-label="Област за добавяне на аудио файлове"
+          tabindex="0"
+        >
+          <span class="upload-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.7"
+              />
+            </svg>
+          </span>
+          <p class="drop-title">Пусни файловете тук</p>
+          <p class="drop-hint">или избери от устройството си</p>
+          <button class="button" id="choose-files" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 5v14m-7-7h14"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-width="2"
+              />
+            </svg>
+            Избери файлове
+          </button>
+          <input
+            id="file-input"
+            type="file"
+            accept="audio/*,.mp3,.wav,.flac,.aac,.m4a,.ogg,.wma,.opus,.aiff,.aif"
+            multiple
+          />
+        </div>
+
+        <div class="settings">
+          <div>
+            <span class="setting-label">Качество на MP3</span>
+            <span class="setting-description">
+              По-висок битрейт = по-добро качество и по-голям файл
+            </span>
+          </div>
+          <label>
+            <span class="setting-label" style="position: absolute; left: -9999px">
+              Битрейт
+            </span>
+            <select id="bitrate">
+              <option value="128">128 kbps</option>
+              <option value="192" selected>192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+          </label>
+        </div>
+
+        <section class="queue" id="queue" aria-label="Избрани файлове">
+          <div class="queue-heading">
+            <h2 class="queue-title" id="queue-title">Файлове (0)</h2>
+            <button class="text-button" id="clear-files" type="button">
+              Изчисти списъка
+            </button>
+          </div>
+          <div class="file-list" id="file-list" aria-live="polite"></div>
+        </section>
+
+        <div
+          class="progress-area"
+          id="progress-area"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="progress-caption">
+            <span id="progress-label">Подготовка...</span>
+            <span id="progress-value"></span>
+          </div>
+          <div
+            class="progress-track"
+            id="progress-track"
+            role="progressbar"
+            aria-label="Напредък на конвертирането"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+        </div>
+
+        <div class="convert-row">
+          <p class="privacy-note">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.7"
+              />
+              <path
+                d="m9 12 2 2 4-4"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.7"
+              />
+            </svg>
+            Файловете се обработват на твоето устройство и не се качват на
+            сървър.
+          </p>
+          <button class="button" id="convert" type="button" disabled>
+            Конвертирай в MP3
+          </button>
+        </div>
+      </section>
+
+      <div class="notice" id="notice" role="alert"></div>
+
+      <footer>
+        Първото конвертиране изтегля FFmpeg в браузъра. Нужно е интернет
+        свързване. <br />
+        <a href="https://ffmpeg.org/" target="_blank" rel="noreferrer">
+          С отворен код, с помощта на FFmpeg
+        </a>
+      </footer>
+    </main>
+
+    <script type="module">
+      const FFMPEG_VERSION = "0.12.15";
+      const CORE_VERSION = "0.12.10";
+      const FFMPEG_BASE = `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FFMPEG_VERSION}/dist/esm`;
+      const CORE_BASE = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
+      const input = document.querySelector("#file-input");
+      const chooseButton = document.querySelector("#choose-files");
+      const dropZone = document.querySelector("#drop-zone");
+      const queueElement = document.querySelector("#queue");
+      const queueTitle = document.querySelector("#queue-title");
+      const fileList = document.querySelector("#file-list");
+      const clearButton = document.querySelector("#clear-files");
+      const bitrateSelect = document.querySelector("#bitrate");
+      const convertButton = document.querySelector("#convert");
+      const notice = document.querySelector("#notice");
+      const progressArea = document.querySelector("#progress-area");
+      const progressLabel = document.querySelector("#progress-label");
+      const progressValue = document.querySelector("#progress-value");
+      const progressTrack = document.querySelector("#progress-track");
+      const progressBar = document.querySelector("#progress-bar");
+      const files = [];
+      const resultUrls = new Set();
+      let ffmpeg = null;
+      let busy = false;
+
+      const formatSize = (bytes) => {
+        if (bytes < 1024 * 1024) {
+          return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+        }
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      };
+
+      const setNotice = (message) => {
+        notice.textContent = message;
+        notice.classList.toggle("visible", Boolean(message));
+      };
+
+      const setProgress = (label, percentage = null) => {
+        progressArea.classList.add("visible");
+        progressLabel.textContent = label;
+        const visiblePercentage =
+          percentage === null ? null : Math.max(0, Math.min(100, percentage));
+        progressValue.textContent =
+          visiblePercentage === null ? "" : `${Math.round(visiblePercentage)}%`;
+        progressTrack.setAttribute(
+          "aria-valuenow",
+          visiblePercentage === null ? "0" : String(Math.round(visiblePercentage)),
+        );
+        progressBar.style.width =
+          visiblePercentage === null ? "28%" : `${visiblePercentage}%`;
+        progressBar.style.animation =
+          visiblePercentage === null ? "pulse 1.2s ease-in-out infinite alternate" : "none";
+      };
+
+      const safeExtension = (name) => {
+        const extension = name.match(/\.([a-zA-Z0-9]{1,10})$/)?.[1];
+        return extension ? `.${extension.toLowerCase()}` : "";
+      };
+
+      const renderFiles = () => {
+        queueElement.classList.toggle("has-files", files.length > 0);
+        queueTitle.textContent = `Файлове (${files.length})`;
+        convertButton.disabled = busy || files.length === 0;
+        clearButton.disabled = busy || files.length === 0;
+        fileList.replaceChildren();
+
+        files.forEach((item, index) => {
+          const row = document.createElement("article");
+          row.className = "file-item";
+          const details = document.createElement("div");
+          const name = document.createElement("div");
+          name.className = "file-name";
+          name.textContent = item.file.name;
+          name.title = item.file.name;
+          const meta = document.createElement("div");
+          meta.className = "file-meta";
+          meta.textContent = `${formatSize(item.file.size)}${item.error ? ` · ${item.error}` : ""}`;
+          details.append(name, meta);
+
+          const actions = document.createElement("div");
+          actions.className = "file-actions";
+          const status = document.createElement("span");
+          status.className = "file-status";
+          status.dataset.state = item.state;
+          status.textContent = item.stateLabel;
+          actions.append(status);
+
+          if (item.url) {
+            const download = document.createElement("a");
+            download.className = "download-link";
+            download.href = item.url;
+            download.download = item.outputName;
+            download.textContent = "Изтегли MP3";
+            download.addEventListener("click", () => {
+              window.setTimeout(() => {
+                URL.revokeObjectURL(item.url);
+                resultUrls.delete(item.url);
+                item.url = null;
+                renderFiles();
+              }, 60_000);
+            }, { once: true });
+            actions.append(download);
+          }
+
+          row.append(details, actions);
+          fileList.append(row);
+        });
+      };
+
+      const addFiles = (selectedFiles) => {
+        const existing = new Set(
+          files.map(
+            ({ file }) => `${file.name.toLocaleLowerCase()}-${file.size}-${file.lastModified}`,
+          ),
+        );
+        let added = 0;
+
+        for (const file of selectedFiles) {
+          const key = `${file.name.toLocaleLowerCase()}-${file.size}-${file.lastModified}`;
+          if (existing.has(key)) {
+            continue;
+          }
+          existing.add(key);
+          files.push({
+            file,
+            state: "ready",
+            stateLabel: "В очакване",
+            error: "",
+            url: null,
+            outputName: "",
+          });
+          added += 1;
+        }
+
+        if (added) {
+          setNotice("");
+        }
+        renderFiles();
+      };
+
+      const downloadBlob = async (url, mimeType, label, onProgress) => {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Файловете на FFmpeg не могат да бъдат заредени (${response.status}).`);
+        }
+        const total = Number(response.headers.get("content-length")) || 0;
+        const reader = response.body?.getReader();
+        if (!reader) {
+          return URL.createObjectURL(await response.blob());
+        }
+
+        const chunks = [];
+        let received = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          chunks.push(value);
+          received += value.byteLength;
+          if (total) {
+            onProgress(`${label} · ${formatSize(received)} / ${formatSize(total)}`);
+          } else {
+            onProgress(`${label} · ${formatSize(received)}`);
+          }
+        }
+
+        return URL.createObjectURL(
+          new Blob(chunks, { type: mimeType }),
+        );
+      };
+
+      const ensureFFmpeg = async () => {
+        if (ffmpeg?.loaded) {
+          return ffmpeg;
+        }
+
+        setProgress("Зареждане на конвертора...");
+        const [{ FFmpeg }] = await Promise.all([import(`${FFMPEG_BASE}/index.js`)]);
+        const engine = new FFmpeg();
+        let coreUrl = "";
+        let wasmUrl = "";
+        let classWorkerUrl = "";
+
+        try {
+          coreUrl = await downloadBlob(
+            `${CORE_BASE}/ffmpeg-core.js`,
+            "text/javascript",
+            "Изтегляне на FFmpeg",
+            setProgress,
+          );
+          wasmUrl = await downloadBlob(
+            `${CORE_BASE}/ffmpeg-core.wasm`,
+            "application/wasm",
+            "Изтегляне на аудио енкодера",
+            setProgress,
+          );
+          const workerModuleUrl = `${FFMPEG_BASE}/worker.js`;
+          classWorkerUrl = URL.createObjectURL(
+            new Blob([`import ${JSON.stringify(workerModuleUrl)};`], {
+              type: "text/javascript",
+            }),
+          );
+          setProgress("Стартиране на FFmpeg...");
+
+          await engine.load({
+            classWorkerURL: classWorkerUrl,
+            coreURL: coreUrl,
+            wasmURL: wasmUrl,
+          });
+          ffmpeg = engine;
+          engine.on("progress", ({ progress }) => {
+            if (!busy) {
+              return;
+            }
+            const currentIndex = files.findIndex((item) => item.state === "working");
+            if (currentIndex !== -1) {
+              const overall = ((currentIndex + progress) / files.length) * 100;
+              setProgress(`Конвертиране: ${files[currentIndex].file.name}`, overall);
+            }
+          });
+          return engine;
+        } catch (error) {
+          engine.terminate();
+          throw error;
+        } finally {
+          for (const url of [coreUrl, wasmUrl, classWorkerUrl]) {
+            if (url) {
+              URL.revokeObjectURL(url);
+            }
+          }
+        }
+      };
+
+      const convertFiles = async () => {
+        if (busy || files.length === 0) {
+          return;
+        }
+
+        busy = true;
+        setNotice("");
+        for (const item of files) {
+          if (item.url) {
+            URL.revokeObjectURL(item.url);
+            resultUrls.delete(item.url);
+          }
+          item.url = null;
+          item.outputName = "";
+          item.error = "";
+          item.state = "ready";
+          item.stateLabel = "В очакване";
+        }
+        progressArea.classList.add("visible");
+        convertButton.textContent = "Конвертиране...";
+        bitrateSelect.disabled = true;
+        dropZone.setAttribute("aria-disabled", "true");
+        chooseButton.disabled = true;
+        clearButton.disabled = true;
+        renderFiles();
+
+        let engine;
+        let succeeded = 0;
+
+        try {
+          engine = await ensureFFmpeg();
+          const bitrate = bitrateSelect.value;
+
+          for (let index = 0; index < files.length; index += 1) {
+            const item = files[index];
+            const inputName = `input-${index}${safeExtension(item.file.name)}`;
+            const outputName = `${item.file.name.replace(/\.[^.]*$/, "") || "audio"}.mp3`;
+            const outputPath = `output-${index}.mp3`;
+            item.state = "working";
+            item.stateLabel = "Конвертиране...";
+            renderFiles();
+            setProgress(
+              `Конвертиране: ${item.file.name}`,
+              (index / files.length) * 100,
+            );
+
+            try {
+              const fileData = new Uint8Array(await item.file.arrayBuffer());
+              await engine.writeFile(inputName, fileData);
+              const exitCode = await engine.exec([
+                "-i",
+                inputName,
+                "-map",
+                "0:a:0",
+                "-vn",
+                "-codec:a",
+                "libmp3lame",
+                "-b:a",
+                `${bitrate}k`,
+                "-map_metadata",
+                "0",
+                outputPath,
+              ]);
+              if (exitCode !== 0) {
+                throw new Error(`FFmpeg не успя да конвертира този файл (код ${exitCode}).`);
+              }
+
+              const outputData = await engine.readFile(outputPath);
+              if (!(outputData instanceof Uint8Array) || outputData.length === 0) {
+                throw new Error("Не беше създаден MP3 файл.");
+              }
+              const copy = outputData.slice();
+              item.url = URL.createObjectURL(
+                new Blob([copy.buffer], { type: "audio/mpeg" }),
+              );
+              resultUrls.add(item.url);
+              item.outputName = outputName;
+              item.state = "done";
+              item.stateLabel = "Готово";
+              succeeded += 1;
+            } catch (error) {
+              item.state = "error";
+              item.stateLabel = "Грешка";
+              item.error = error instanceof Error ? error.message : String(error);
+            } finally {
+              await engine.deleteFile(inputName).catch(() => {});
+              await engine.deleteFile(outputPath).catch(() => {});
+            }
+            renderFiles();
+          }
+
+          const failed = files.length - succeeded;
+          setProgress(
+            failed
+              ? `Готово · Успешни: ${succeeded} · С грешка: ${failed}`
+              : `Готово · Конвертирани файлове: ${succeeded}`,
+            100,
+          );
+          if (failed) {
+            setNotice(
+              "Някои файлове не можаха да бъдат конвертирани. Отвори съобщението под съответния файл и провери формата му.",
+            );
+          }
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          setProgress("Конверторът не можа да се стартира.");
+          setNotice(
+            `Не успяхме да заредим FFmpeg. Провери интернет връзката и опитай отново. ${detail}`,
+          );
+        } finally {
+          busy = false;
+          convertButton.textContent = "Конвертирай в MP3";
+          bitrateSelect.disabled = false;
+          dropZone.removeAttribute("aria-disabled");
+          chooseButton.disabled = false;
+          clearButton.disabled = files.length === 0;
+          renderFiles();
+        }
+      };
+
+      chooseButton.addEventListener("click", () => input.click());
+      dropZone.addEventListener("click", (event) => {
+        if (event.target === dropZone) {
+          input.click();
+        }
+      });
+      dropZone.addEventListener("keydown", (event) => {
+        if (event.target === dropZone && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          input.click();
+        }
+      });
+      input.addEventListener("change", () => {
+        addFiles(input.files ?? []);
+        input.value = "";
+      });
+      clearButton.addEventListener("click", () => {
+        if (busy) {
+          return;
+        }
+        for (const url of resultUrls) {
+          URL.revokeObjectURL(url);
+        }
+        resultUrls.clear();
+        files.length = 0;
+        setNotice("");
+        progressArea.classList.remove("visible");
+        renderFiles();
+      });
+      convertButton.addEventListener("click", convertFiles);
+
+      for (const eventName of ["dragenter", "dragover"]) {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          if (!busy) {
+            dropZone.classList.add("is-dragover");
+          }
+        });
+      }
+      for (const eventName of ["dragleave", "drop"]) {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropZone.classList.remove("is-dragover");
+        });
+      }
+      dropZone.addEventListener("drop", (event) => {
+        if (!busy && event.dataTransfer?.files) {
+          addFiles(event.dataTransfer.files);
+        }
+      });
+
+      window.addEventListener("beforeunload", () => {
+        for (const url of resultUrls) {
+          URL.revokeObjectURL(url);
+        }
+        ffmpeg?.terminate();
+      });
+    </script>
+  </body>
+</html>
